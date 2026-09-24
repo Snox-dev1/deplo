@@ -285,3 +285,21 @@ test("every merged tool is covered by the coercion table above", () => {
   for (const name of merged)
     assert.ok(names.has(name), `${name} branches but has no coercion case`);
 });
+
+test("a repo set over MCP keeps the credential that clones it", () => {
+  for (const name of ["create_app", "update_app_source"]) {
+    const tool = MCP_TOOLS.find((t) => t.name === name);
+    assert.ok(tool, `${name} is gone - stale case`);
+    const vars = tool.variables!({
+      appId: "a",
+      name: "n",
+      source: "GITHUB",
+      repoUrl: "https://github.com/acme/private",
+      repo: "acme/private",
+      installationId: "inst_1",
+      connectionId: "conn_1",
+    } as never) as { input: { repo: Record<string, unknown> } };
+    assert.equal(vars.input.repo.installationId, "inst_1", name);
+    assert.equal(vars.input.repo.connectionId, "conn_1", name);
+  }
+});

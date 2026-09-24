@@ -2,6 +2,20 @@ import * as z from "zod";
 import { appId, tool, type McpToolDef } from "./tool-def";
 import { APP_FIELDS } from "./apps-read";
 
+// Without one of these the repo is saved with no credential, so a private repo clones anonymously and fails.
+const gitLink = {
+  installationId: z
+    .string()
+    .optional()
+    .describe(
+      "A GitHub installation's id (not its installationId number), from list_git_sources.",
+    ),
+  connectionId: z
+    .string()
+    .optional()
+    .describe("A non-GitHub git connection, from list_git_sources."),
+};
+
 export const APPS_CONFIG: McpToolDef[] = [
   tool({
     name: "create_app_from_template",
@@ -65,6 +79,7 @@ export const APPS_CONFIG: McpToolDef[] = [
       repoUrl: z.string().optional().describe("Clone URL, for GIT/GITHUB."),
       repo: z.string().optional().describe('Owner/name, e.g. "acme/api".'),
       branch: z.string().optional().describe("Defaults to main."),
+      ...gitLink,
       dockerImage: z.string().optional().describe("For DOCKER_IMAGE."),
       compose: z.string().optional().describe("Compose YAML, for COMPOSE."),
       serverId: z.string().optional(),
@@ -95,6 +110,8 @@ export const APPS_CONFIG: McpToolDef[] = [
               repo: a.repo ?? "",
               branch: a.branch ?? "main",
               provider: a.source === "GITHUB" ? "github" : "git",
+              installationId: a.installationId,
+              connectionId: a.connectionId,
             }
           : undefined,
       },
@@ -159,6 +176,7 @@ export const APPS_CONFIG: McpToolDef[] = [
       repoUrl: z.string().optional(),
       repo: z.string().optional(),
       branch: z.string().optional(),
+      ...gitLink,
       dockerImage: z.string().optional(),
       compose: z.string().optional(),
       serverId: z.string().optional(),
@@ -181,6 +199,8 @@ export const APPS_CONFIG: McpToolDef[] = [
               repo: a.repo ?? "",
               branch: a.branch ?? "main",
               provider: a.source === "GITHUB" ? "github" : "git",
+              installationId: a.installationId,
+              connectionId: a.connectionId,
             }
           : undefined,
       },
